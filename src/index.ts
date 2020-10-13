@@ -190,10 +190,6 @@ const extrenalsProcessorFactory = (
   }
 }
 
-const enum Cache {
-  templateIsFile = 'templateIsFile',
-}
-
 const html2: RollupPluginHTML2 = ({
   template,
   file: deprecatedFileOption,
@@ -222,7 +218,6 @@ const html2: RollupPluginHTML2 = ({
     } else if (!htmlFileName) {
       this.error('When `template` is an HTML string the `fileName` option must be defined')
     }
-    this.cache.set(Cache.templateIsFile, templateIsFile)
 
     if (favicon && !(fs.existsSync(favicon) && fs.lstatSync(favicon).isFile())) {
       this.error('The provided favicon file does\'t exist')
@@ -274,15 +269,11 @@ const html2: RollupPluginHTML2 = ({
   },
 
   generateBundle(output, bundle): void {
-    const data = this.cache.get<boolean>(Cache.templateIsFile)
+    const data = fs.existsSync(template)
       ? fs.readFileSync(template).toString()
       : template
 
-    const doc = parse(data, {
-      pre: true,
-      script: true,
-      style: true,
-    }) as HTMLElement & {valid: boolean}
+    const doc = parse(data) as HTMLElement & {valid: boolean}
     if (!doc.valid) {
       this.error('Error parsing template')
     }
